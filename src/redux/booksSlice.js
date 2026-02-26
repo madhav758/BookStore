@@ -10,7 +10,7 @@ const initialState = {
     message: '',
 };
 
-const API_URL = 'http://localhost:5001/api/books/';
+const API_URL = 'https://bookstore-0clp.onrender.com/api/books/';
 
 // Get all books
 export const getBooks = createAsyncThunk('books/getAll', async (_, thunkAPI) => {

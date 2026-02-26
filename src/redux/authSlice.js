@@ -11,7 +11,7 @@ const initialState = {
     message: '',
 };
 
-const API_URL = 'http://localhost:5001/api/auth/';
+const API_URL = 'https://bookstore-0clp.onrender.com/api/auth/';
 
 // Register user
 export const register = createAsyncThunk(
