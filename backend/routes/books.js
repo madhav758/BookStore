@@ -66,8 +66,13 @@ router.get('/:id', protect, async (req, res) => {
 // @access  Private
 router.post('/', protect, upload.single('pdfFile'), async (req, res) => {
     try {
-        const { title, author, category, description, coverUrl } = req.body;
+        const { title, author, category, description } = req.body;
+        let coverUrl = req.body.coverUrl;
         let pdfUrl = '';
+
+        if (!coverUrl || coverUrl.trim() === '') {
+            coverUrl = 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=800';
+        }
 
         if (req.file) {
             pdfUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;

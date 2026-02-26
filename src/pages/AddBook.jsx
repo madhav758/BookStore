@@ -29,8 +29,7 @@ const AddBook = () => {
         if (!formData.author.trim()) newErrors.author = "Author is required";
         if (!formData.category) newErrors.category = "Category is required";
         if (!formData.description.trim()) newErrors.description = "Description is required";
-        if (!formData.coverUrl.trim()) newErrors.coverUrl = "Cover URL is required";
-        else if (!/^https?:\/\/.+/.test(formData.coverUrl)) newErrors.coverUrl = "Please enter a valid URL";
+        if (formData.coverUrl.trim() && !/^https?:\/\/.+/.test(formData.coverUrl)) newErrors.coverUrl = "Please enter a valid URL";
         if (!formData.pdfFile) newErrors.pdfFile = "PDF strictly required for the book content";
 
         setErrors(newErrors);
@@ -159,7 +158,7 @@ const AddBook = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-zinc-300 mb-1">Cover Image URL</label>
+                        <label className="block text-sm font-medium text-zinc-300 mb-1">Cover Image URL (Optional)</label>
                         <input
                             type="url"
                             name="coverUrl"
