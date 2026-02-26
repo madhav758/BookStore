@@ -22,8 +22,12 @@ router.post('/register', async (req, res) => {
             return res.status(400).json({ message: 'Please add all fields' });
         }
 
-        // Check if user exists
-        const userExists = await User.findOne({ username });
+        const trimmedUsername = username.trim();
+
+        // Check if user exists case-insensitively
+        const userExists = await User.findOne({
+            username: { $regex: new RegExp(`^${trimmedUsername}$`, 'i') }
+        });
 
         if (userExists) {
             return res.status(400).json({ message: 'User already exists' });
@@ -61,8 +65,16 @@ router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        // Check for user email
-        const user = await User.findOne({ username });
+        // Ensure username and password are provided
+        if (!username || !password) {
+            return res.status(400).json({ message: 'Please provide both username and password' });
+        }
+
+        // Check for user case-insensitively and ignore trailing spaces
+        const trimmedUsername = username.trim();
+        const user = await User.findOne({
+            username: { $regex: new RegExp(`^${trimmedUsername}$`, 'i') }
+        });
 
         if (user && (await bcrypt.compare(password, user.password))) {
             res.json({

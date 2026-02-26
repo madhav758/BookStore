@@ -82,6 +82,9 @@ const Login = () => {
                                 name="username"
                                 type="text"
                                 required
+                                autoCapitalize="none"
+                                autoCorrect="off"
+                                autoComplete="username"
                                 className="appearance-none rounded-lg relative block w-full px-4 py-3 border border-zinc-700 bg-zinc-950 placeholder-zinc-500 text-white focus:outline-none focus:ring-2 focus:ring-zinc-600 focus:border-transparent sm:text-sm transition-colors"
                                 placeholder="Enter your username"
                                 value={username}
