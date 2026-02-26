@@ -1,69 +1,122 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
 
 const initialState = {
-    items: [
-        {
-            id: 1,
-            title: "The Great Gatsby",
-            author: "F. Scott Fitzgerald",
-            category: "Fiction",
-            description: "A novel set in the Roaring Twenties that tells the story of Jay Gatsby's unrequited love for Daisy Buchanan.",
-            rating: 4.5,
-            coverUrl: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=800"
-        },
-        {
-            id: 2,
-            title: "To Kill a Mockingbird",
-            author: "Harper Lee",
-            category: "Fiction",
-            description: "A novel about the serious issues of rape and racial inequality, but it is also full of warmth and humor.",
-            rating: 4.8,
-            coverUrl: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=800"
-        },
-        {
-            id: 3,
-            title: "1984",
-            author: "George Orwell",
-            category: "Sci-Fi",
-            description: "A dystopian social science fiction novel and cautionary tale about the future.",
-            rating: 4.6,
-            coverUrl: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=800"
-        },
-        {
-            id: 4,
-            title: "Sapiens: A Brief History of Humankind",
-            author: "Yuval Noah Harari",
-            category: "Non-Fiction",
-            description: "A book that surveys the history of humankind from the evolution of archaic human species in the Stone Age up to the twenty-first century.",
-            rating: 4.7,
-            coverUrl: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=800"
-        },
-        {
-            id: 5,
-            title: "Dune",
-            author: "Frank Herbert",
-            category: "Sci-Fi",
-            description: "Set on the desert planet Arrakis, Dune is the story of the boy Paul Atreides, heir to a noble family tasked with ruling an inhospitable world.",
-            rating: 4.9,
-            coverUrl: "https://images.unsplash.com/photo-1541963463532-d68292c34b19?auto=format&fit=crop&q=80&w=800"
-        }
-    ],
-    categories: ["Fiction", "Non-Fiction", "Sci-Fi", "Mystery", "Biography"]
+    items: [],
+    categories: ["Fiction", "Non-Fiction", "Sci-Fi", "Mystery", "Biography"],
+    isError: false,
+    isSuccess: false,
+    isLoading: false,
+    message: '',
 };
+
+const API_URL = 'http://localhost:5001/api/books/';
+
+// Get all books
+export const getBooks = createAsyncThunk('books/getAll', async (_, thunkAPI) => {
+    try {
+        const response = await axios.get(API_URL);
+        return response.data;
+    } catch (error) {
+        const message =
+            (error.response &&
+                error.response.data &&
+                error.response.data.message) ||
+            error.message ||
+            error.toString();
+        return thunkAPI.rejectWithValue(message);
+    }
+});
+
+// Get single book
+export const getBook = createAsyncThunk('books/getSingle', async (id, thunkAPI) => {
+    try {
+        const token = thunkAPI.getState().auth.user.token;
+
+        const config = {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        };
+
+        const response = await axios.get(API_URL + id, config);
+        return response.data;
+    } catch (error) {
+        const message =
+            (error.response &&
+                error.response.data &&
+                error.response.data.message) ||
+            error.message ||
+            error.toString();
+        return thunkAPI.rejectWithValue(message);
+    }
+});
+
+// Add new book
+export const addBook = createAsyncThunk('books/addBook', async (bookData, thunkAPI) => {
+    try {
+        const token = thunkAPI.getState().auth.user.token;
+
+        const config = {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data',
+            }
+        };
+
+        const response = await axios.post(API_URL, bookData, config);
+        return response.data;
+    } catch (error) {
+        const message =
+            (error.response &&
+                error.response.data &&
+                error.response.data.message) ||
+            error.message ||
+            error.toString();
+        return thunkAPI.rejectWithValue(message);
+    }
+});
 
 const booksSlice = createSlice({
     name: 'books',
     initialState,
     reducers: {
-        addBook: (state, action) => {
-            state.items.push({
-                id: state.items.length + 1,
-                ...action.payload,
-                rating: 0 // Default rating for new books
-            });
+        reset: (state) => initialState,
+        // Optional local state update if optimistic UI is needed
+        addBookLocally: (state, action) => {
+            state.items.push(action.payload);
         }
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(getBooks.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(getBooks.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.items = action.payload;
+            })
+            .addCase(getBooks.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
+            })
+            .addCase(addBook.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(addBook.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.items.push(action.payload);
+            })
+            .addCase(addBook.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
+            });
     }
 });
 
-export const { addBook } = booksSlice.actions;
+export const { reset, addBookLocally } = booksSlice.actions;
 export default booksSlice.reducer;
